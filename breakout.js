@@ -3,8 +3,8 @@ var ctx = canvas.getContext("2d");
 
 var x = canvas.width/2;
 var y = canvas.height - 30;
-var dx = 2;
-var dy = -2;
+var dx = 3;
+var dy = -3;
 var ballRadius = 10;
 
 var paddleH = 10;
@@ -32,6 +32,9 @@ for (c = 0; c < brickColumnCount; c++) {
         bricks[c][r] = { x: 0, y: 0, status: 1 };
     }
 }
+
+var score = 0;
+var lives = 3;
 
 function drawBall() {
     ctx.beginPath();
@@ -67,11 +70,27 @@ function drawBricks() {
     }
 }
 
+function drawScore() {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Score: " + score, 8, 20);
+}
+
+function drawLives() {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
+}
+
 function draw() {
+    requestAnimationFrame(draw);
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBricks();
     drawBall();
     drawPaddle();
+    drawScore();
+    drawLives();
     collisionDetection();
 
     if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
@@ -83,8 +102,17 @@ function draw() {
         if (x > paddleX && x < paddleX + paddleW) {
             dy = -dy;
         } else {
-            alert("GAME OVER");
-            document.location.reload();
+            lives -= 1;
+            if (!lives) {
+                alert("GAME OVER");
+                document.location.reload();
+            } else {
+                x = canvas.width / 2;
+                y = canvas.height - 30;
+                dx = 3;
+                dy = -3;
+                paddleX = (canvas.width - paddleW) / 2;
+            }
         }
     }
 
@@ -127,10 +155,24 @@ function collisionDetection() {
                     y > b.y && y < b.y + brickHeight) {
                     dy = -dy;
                     b.status = 0;
+                    score += 1;
+                    if (score === brickColumnCount * brickRowCount) {
+                        alert("YOU WIN, CONGRATULATIONS!!");
+                        document.location.reload();
+                    }
                 }
             }
         }
     }
 }
 
-setInterval(draw, 10);
+document.addEventListener("mousemove", mouseMoveHandler, false);
+
+function mouseMoveHandler(e) {
+    var relativeX = e.clientX - canvas.offsetLeft;
+    if (relativeX > 0 && relativeX < canvas.width) {
+        paddleX = relativeX - paddleW/2;
+    }
+}
+
+draw();
