@@ -44,6 +44,14 @@ BREAK_APP.utils.each = function(arr, f) {
     });
 };
 
+BREAK_APP.utils.collision = function(entity, that) {
+    // Next styled CD solution w/radius subbed in for circle tests
+    return that.x < entity.x + entity.w &&
+        that.x + that.r > entity.x &&
+        that.y < entity.y + entity.h &&
+        that.y + that.r > entity.y;
+};
+
 BREAK_APP.inputs = {
     rightPressed: false,
     leftPressed: false
@@ -58,11 +66,6 @@ function Ball(x, y, r, v) {
     this.dx = v || 3;
     this.dy = -v || -3;
     this.color = "#0095DD";
-    // Path2D use: I initially wanted to use an IIFE thinking that it would be
-    // updated each frame but instead it became a static ball. By calling it
-    // each frame now w/x & y arguments I'm creating a new ball everytime. This
-    // was something I had hoped to avoid using Path2D. In this case, the only
-    // benefit is NOT having to pass ctx in to construct the ball.
     this.path = function(x, y) {
         var path = new Path2D();
         path.arc(x, y, that.r, 0, Math.PI * 2);
@@ -73,14 +76,32 @@ function Ball(x, y, r, v) {
 
 Ball.prototype.update = function() {
     // is this actually DRY or just DUMB?
+    var that = this;
     var newX = this.x + this.dx;
     var newY = this.y + this.dy;
-    if (newX > BREAK_APP.canvas.width || newX < 0) {
+
+    if (newX > BREAK_APP.canvas.width - this.r || newX < this.r) {
         this.dx = -this.dx;
     }
-    if (newY > BREAK_APP.canvas.height || newY < 0) {
+    if (newY < this.r) {
         this.dy = -this.dy;
+    } else if (newY > BREAK_APP.canvas.height - this.r) {
+        alert("GAME OVER");
+        document.location.reload();
     }
+
+    // Check collision with all entities in game
+    // Question: is there a better way to get "this" into collision()?
+    BREAK_APP.utils.each(BREAK_APP.entities, function(ent) {
+        // Omit self
+        if (ent === that) { return; }
+
+        // Check each entity for collision with "this"
+        if (BREAK_APP.utils.collision(ent, that)){
+            that.dy = -that.dy;
+        }
+    });
+
     this.x += this.dx;
     this.y += this.dy;
 };
