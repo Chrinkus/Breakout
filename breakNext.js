@@ -3,7 +3,14 @@ var BREAK_APP = BREAK_APP || {};
 BREAK_APP.canvas = document.getElementById("myCanvas");
 BREAK_APP.ctx = BREAK_APP.canvas.getContext("2d");
 
+BREAK_APP.settings = {
+    font: "16px Arial",
+    color: "#0095DD"
+};
+
 BREAK_APP.entities = [];
+BREAK_APP.messages = {};
+
 BREAK_APP.brickField = {
     rowCount: 3,
     columnCount: 5,
@@ -17,12 +24,20 @@ BREAK_APP.brickField = {
         }
     }
 };
+
 BREAK_APP.init = function() {
     this.entities.push(new Ball()); 
     this.entities.push(new Paddle());
 
     this.brickField.fill();
     this.entities.push(this.brickField.bricks);
+
+    // Location: score.update is in Ball.update brick collision check
+    this.messages.score = new TextBox(8, 20, "counterInc", "Score: ", 0);
+
+    // Display only currently
+    this.messages.lives = new TextBox(this.utils.CW - 65, 20, "counterDec",
+            "Lives: ", 3);
 };
 
 BREAK_APP.update = function () {
@@ -34,12 +49,19 @@ BREAK_APP.update = function () {
 };
 
 BREAK_APP.draw = function() {
+    // wipe the last draw
     this.utils.clear();
+
     // draw entities
     function drawer(entity) {
         entity.draw(BREAK_APP.ctx);
     }
     BREAK_APP.utils.each(BREAK_APP.entities, drawer);
+
+    // draw messages
+    for (let msg in this.messages) {
+        this.messages[msg].draw(this.ctx);
+    }
 };
 
 BREAK_APP.utils = {
@@ -76,8 +98,8 @@ BREAK_APP.inputs = {
 function Ball(x, y, r, v) {
     "use strict";
     var that = this;
-    this.x = x || BREAK_APP.canvas.width / 2;
-    this.y = y || BREAK_APP.canvas.height - 30;
+    this.x = x || BREAK_APP.utils.CW / 2;
+    this.y = y || BREAK_APP.utils.CH - 30;
     this.r = r || 10;
     this.dx = v || 3;
     this.dy = -v || -3;
@@ -89,6 +111,13 @@ function Ball(x, y, r, v) {
         return path;
     };
 }
+
+Ball.prototype.reset = function() {
+    this.x = BREAK_APP.utils.CW / 2;
+    this.y = BREAK_APP.utils.CH - 30;
+    this.dx = 3;
+    this.dy = -3;
+};
 
 Ball.prototype.update = function() {
     // is this actually DRY or just DUMB?
@@ -102,8 +131,17 @@ Ball.prototype.update = function() {
     if (newY < this.r) {
         this.dy = -this.dy;
     } else if (newY > BREAK_APP.canvas.height - this.r) {
-        alert("GAME OVER");
-        document.location.reload();
+        // reduce lives
+        BREAK_APP.messages.lives.update();
+        
+        if (!BREAK_APP.messages.lives.val) {
+            // if no lives left, game over
+            alert("GAME OVER");
+            document.location.reload();
+        } else {
+            // if lives left, reset ball position
+            this.reset();
+        }
     }
 
     // Check collision with all entities in game
@@ -113,13 +151,14 @@ Ball.prototype.update = function() {
         if (ent === that) { return; }
 
         // Omit "hit" bricks
-        if (!ent.status) { return; }
+        if (!ent.statusCode) { return; }
 
         // Check each entity for collision with "this"
         if (BREAK_APP.utils.collision(ent, that)) {
             // If brick, disappear
             if (ent instanceof Brick) {
-                ent.status = 0;
+                ent.statusCode = 0;
+                BREAK_APP.messages.score.update();
             }
             //Change direction
             that.dy = -that.dy;
@@ -138,7 +177,7 @@ Ball.prototype.draw = function(ctx) {
 function Paddle(x, y, h, w, v) {
     "use strict";
     var that = this;
-    this.status = 1;
+    this.statusCode = 1;
     this.x = x || (BREAK_APP.utils.CW - (w || 75)) / 2;
     this.y = y || (BREAK_APP.utils.CH - (h || 10));
     this.w = w || 75;
@@ -173,7 +212,7 @@ Paddle.prototype.draw = function(ctx) {
 function Brick(cVal, rVal) {
     "use strict";
     var that = this;
-    this.status = 1;
+    this.statusCode = 1;
     this.w = 75;
     this.h = 20;
     this.padding = 10;
@@ -196,12 +235,45 @@ Brick.prototype.update = function() {
 
 Brick.prototype.draw = function(ctx) {
     //Ball.prototype.draw.call(this, ctx);
-    if (!this.status) {
+    if (!this.statusCode) {
         // Don't draw missing bricks
         return;
     }
     ctx.fillStyle = this.color;
     ctx.fill(this.path());
+};
+
+function TextBox(x, y, type, msg, initVal) {
+    "use strict";
+    this.x = x;
+    this.y = y;
+    this.type = type;
+    this.msg = msg;
+    this.val = initVal;
+
+    this.color = BREAK_APP.settings.color;
+    this.font = BREAK_APP.settings.font;
+}
+
+TextBox.prototype.update = function() {
+    // Type updates here?
+    switch (this.type) {
+        case "counterInc":
+            this.val++;
+            break;
+        case "counterDec":
+            this.val--;
+            break;
+        default:
+            break;
+    }
+};
+
+TextBox.prototype.draw = function(ctx) {
+    // Access color & font through settings?
+    ctx.font = this.font;
+    ctx.fillStyle = this.color;
+    ctx.fillText(this.msg + this.val, this.x, this.y);
 };
 
 (function () {
