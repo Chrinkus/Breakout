@@ -35,17 +35,16 @@ BREAK_APP.init = function() {
     // Location: score.update is in Ball.update brick collision check
     this.messages.score = new TextBox(8, 20, "counterInc", "Score: ", 0);
 
-    // Display only currently
+    // Location: lives.update is in Ball.update screen boundary check
     this.messages.lives = new TextBox(this.utils.CW - 65, 20, "counterDec",
             "Lives: ", 3);
 };
 
 BREAK_APP.update = function () {
     // update entities
-    function updater(entity) {
+    BREAK_APP.utils.each(BREAK_APP.entities, function(entity) {
         entity.update();
-    }
-    BREAK_APP.utils.each(BREAK_APP.entities, updater);
+    });
 };
 
 BREAK_APP.draw = function() {
@@ -53,10 +52,9 @@ BREAK_APP.draw = function() {
     this.utils.clear();
 
     // draw entities
-    function drawer(entity) {
+    BREAK_APP.utils.each(BREAK_APP.entities, function(entity) {
         entity.draw(BREAK_APP.ctx);
-    }
-    BREAK_APP.utils.each(BREAK_APP.entities, drawer);
+    });
 
     // draw messages
     for (let msg in this.messages) {
@@ -88,6 +86,13 @@ BREAK_APP.utils.collision = function(entity, that) {
         that.x + that.r > entity.x &&
         that.y - that.r < entity.y + entity.h &&
         that.y + that.r > entity.y;
+};
+
+BREAK_APP.utils.winCheck = function() {
+    if (BREAK_APP.messages.score.val === 15) {
+        alert("YOU WIN, CONGRATULATIONS!!");
+        document.location.reload();
+    }
 };
 
 BREAK_APP.inputs = {
@@ -159,6 +164,8 @@ Ball.prototype.update = function() {
             if (ent instanceof Brick) {
                 ent.statusCode = 0;
                 BREAK_APP.messages.score.update();
+
+                BREAK_APP.utils.winCheck();
             }
             //Change direction
             that.dy = -that.dy;
@@ -277,6 +284,7 @@ TextBox.prototype.draw = function(ctx) {
 };
 
 (function () {
+    "use strict";
     BREAK_APP.init();
     function main(tStamp) {
         BREAK_APP.stopMain = window.requestAnimationFrame(main);
