@@ -1,5 +1,18 @@
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Claim the global name
+// One of the main issues with the tutorial was the excessive use of global
+// variables. Here I am setting the variable name that will encompass most of
+// this project.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 var BREAK_APP = BREAK_APP || {};
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Top level variables
+// Access to the canvas and ctx APIs will be common through all projects. Also,
+// defining a settings object for commonly used values (colours, fonts) can
+// improve project cohesion. Also, collecting all entities and messaging into
+// arrays or objects makes drawing cycles easier.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 BREAK_APP.canvas = document.getElementById("myCanvas");
 BREAK_APP.ctx = BREAK_APP.canvas.getContext("2d");
 
@@ -11,10 +24,18 @@ BREAK_APP.settings = {
 BREAK_APP.entities = [];
 BREAK_APP.messages = {};
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// The brickField is a game specific list of settings.
+// Abstraction Opportunity: could make the field more dynamic by setting brick
+// width and height off of row and column counts in relation to the size of the
+// canvas. This way the field can grow or shrink in number of bricks to match
+// the canvas.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 BREAK_APP.brickField = {
     rowCount: 3,
     columnCount: 5,
     bricks: [],
+    // Create a brick object in each column of each row in a 2D array
     fill: function() {
         for (let c = 0; c < this.columnCount; c++) {
             this.bricks[c] = [];
@@ -25,6 +46,13 @@ BREAK_APP.brickField = {
     }
 };
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Game Initialization
+// Create game players/actors/entities and place them into appropriate varia-
+// bles for drawing/updating iteration.
+// Game Design Consideration: should the init be written in such a way that it
+// is appropriate to use as a soft reset as well?
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 BREAK_APP.init = function() {
     this.entities.push(new Ball()); 
     this.entities.push(new Paddle());
@@ -40,6 +68,12 @@ BREAK_APP.init = function() {
             "Lives: ", 3);
 };
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Update & Draw
+// These functions will be called every frame. The contents of each could be
+// instead placed into the main loop to save a function call if this is not an
+// acceptably efficient method. As it is, the main loop is fairly clean.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 BREAK_APP.update = function () {
     // update entities
     BREAK_APP.utils.each(BREAK_APP.entities, function(entity) {
@@ -62,15 +96,27 @@ BREAK_APP.draw = function() {
     }
 };
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Utilities
+// These are functions that help other functions to do their jobs or streamline
+// common calls. Collision detection is found here though for more robust CD
+// systems, a separate top level property of BREAK_APP may be dedicated to it.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 BREAK_APP.utils = {
+    // Commonly used values stored to save lookups/verbosity
     CW: BREAK_APP.canvas.width,
     CH: BREAK_APP.canvas.height
 };
 
+// Wipes canvas for each redraw. Could take args if smaller redraws are
+// desirable.
 BREAK_APP.utils.clear = function() {
     BREAK_APP.ctx.clearRect(0, 0, this.CW, this.CH);
 };
 
+// Each helps to apply the draw and update functions to each element of a deep
+// array of arrays. This is necessary because the brick field is a 2D array
+// within the entities array.
 BREAK_APP.utils.each = function(arr, f) {
     arr.forEach(function(ent) {
         if (ent.length && typeof ent === "object") {
@@ -80,8 +126,8 @@ BREAK_APP.utils.each = function(arr, f) {
     });
 };
 
+// Next styled CD solution w/radius subbed in for circle tests
 BREAK_APP.utils.collision = function(entity, that) {
-    // Next styled CD solution w/radius subbed in for circle tests
     return that.x - that.r < entity.x + entity.w &&
         that.x + that.r > entity.x &&
         that.y - that.r < entity.y + entity.h &&
@@ -95,11 +141,20 @@ BREAK_APP.utils.winCheck = function() {
     }
 };
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// User Input
+// This is a small section that could possibly integrate the event handler
+// functions found below. As the level of user interaction increases, so too
+// will this property.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 BREAK_APP.inputs = {
     rightPressed: false,
     leftPressed: false
 };
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Constructors - COMING SOON!!
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 function Ball(x, y, r, v) {
     "use strict";
     var that = this;
