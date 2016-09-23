@@ -153,7 +153,9 @@ BREAK_APP.inputs = {
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// Constructors - COMING SOON!!
+// Constructors
+// I understand these are all hitting the global object. Will consider refac-
+// toring them into properties of a top level "constructors" object.
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 function Ball(x, y, r, v) {
     "use strict";
@@ -337,6 +339,16 @@ TextBox.prototype.draw = function(ctx) {
     ctx.fillStyle = this.color;
     ctx.fillText(this.msg + this.val, this.x, this.y);
 };
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Main Loop
+// This main loop is clean. Request animation, schedule the draw, update state.
+// Until there is a need to offload certain processes to a webworker this will
+// be my preferred pattern.
+// Refactoring Opportunity: As stated above in input comment, I'll be moving
+// much of the event handling code up to the input object with an init function
+// to be called before "main()".
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 (function () {
     "use strict";
