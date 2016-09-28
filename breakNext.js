@@ -143,13 +143,36 @@ BREAK_APP.utils.winCheck = function() {
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // User Input
-// This is a small section that could possibly integrate the event handler
-// functions found below. As the level of user interaction increases, so too
-// will this property.
+// The only user input for this game is using the left and right arrows to
+// move the paddle. I'd like to convert this into a control handler more like
+// what I had in the Next project.
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 BREAK_APP.inputs = {
     rightPressed: false,
-    leftPressed: false
+    leftPressed: false,
+
+    keyDownHandler: function(e) {
+        if (e.keyCode === 39) {
+            this.rightPressed = true;
+        } else if (e.keyCode === 37) {
+            this.leftPressed = true;
+        }
+    },
+
+    keyUpHandler: function(e) {
+        if (e.keyCode === 39) {
+            this.rightPressed = false;
+        } else if (e.keyCode === 37) {
+            this.leftPressed = false;
+        }
+    },
+
+    init: function() {
+        document.addEventListener("keydown", this.keyDownHandler.bind(this),
+                false);
+        document.addEventListener("keyup", this.keyUpHandler.bind(this),
+                false);
+    }
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -345,40 +368,20 @@ TextBox.prototype.draw = function(ctx) {
 // This main loop is clean. Request animation, schedule the draw, update state.
 // Until there is a need to offload certain processes to a webworker this will
 // be my preferred pattern.
-// Refactoring Opportunity: As stated above in input comment, I'll be moving
-// much of the event handling code up to the input object with an init function
-// to be called before "main()".
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 (function () {
     "use strict";
     BREAK_APP.init();
-    function main(tStamp) {
+    function main() {
         BREAK_APP.stopMain = window.requestAnimationFrame(main);
         
         BREAK_APP.draw();
 
-        BREAK_APP.update(tStamp);
+        BREAK_APP.update();
     } 
 
-    document.addEventListener("keydown", keyDownHandler, false);
-    document.addEventListener("keyup", keyUpHandler, false);
-
-    function keyDownHandler(e) {
-        if (e.keyCode === 39) {
-            BREAK_APP.inputs.rightPressed = true;
-        } else if (e.keyCode === 37) {
-            BREAK_APP.inputs.leftPressed = true;
-        }
-    }
-
-    function keyUpHandler(e) {
-        if (e.keyCode === 39) {
-            BREAK_APP.inputs.rightPressed = false;
-        } else if (e.keyCode === 37) {
-            BREAK_APP.inputs.leftPressed = false;
-        }
-    }
+    BREAK_APP.inputs.init();
 
     main();
 })();
