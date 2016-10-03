@@ -198,6 +198,7 @@ Ball.prototype.update = function() {
     var newX = this.x + this.dx;
     var newY = this.y + this.dy;
 
+    // First test against canvas boundaries
     if (newX > BREAK_APP.canvas.width - this.r || newX < this.r) {
         this.dx = -this.dx;
     }
@@ -236,7 +237,11 @@ Ball.prototype.update = function() {
                 BREAK_APP.utils.winCheck();
             }
             //Change direction
-            that.dy = -that.dy;
+            if (that.y > ent.y && that.y < ent.y + ent.h) {
+                that.dx = -that.dx;
+            } else {
+                that.dy = -that.dy;
+            }
         }
     });
 
