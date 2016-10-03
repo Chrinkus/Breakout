@@ -144,34 +144,22 @@ BREAK_APP.utils.winCheck = function() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // User Input
 // The only user input for this game is using the left and right arrows to
-// move the paddle. I'd like to convert this into a control handler more like
-// what I had in the Next project.
+// move the paddle. This current control scheme is ripped from the Next system.
+// Perhaps calling the "delete" method of the object prototype is heavier than
+// needed.
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 BREAK_APP.inputs = {
-    rightPressed: false,
-    leftPressed: false,
-
-    keyDownHandler: function(e) {
-        if (e.keyCode === 39) {
-            this.rightPressed = true;
-        } else if (e.keyCode === 37) {
-            this.leftPressed = true;
-        }
-    },
-
-    keyUpHandler: function(e) {
-        if (e.keyCode === 39) {
-            this.rightPressed = false;
-        } else if (e.keyCode === 37) {
-            this.leftPressed = false;
-        }
-    },
+    keysDown: {},
 
     init: function() {
-        document.addEventListener("keydown", this.keyDownHandler.bind(this),
-                false);
-        document.addEventListener("keyup", this.keyUpHandler.bind(this),
-                false);
+
+        document.addEventListener("keydown", function(e) {
+            this.keysDown[e.keyCode] = true;
+        }.bind(this), false);
+
+        document.addEventListener("keyup", function(e) {
+            delete this.keysDown[e.keyCode];
+        }.bind(this), false);
     }
 };
 
@@ -281,11 +269,19 @@ function Paddle(x, y, h, w, v) {
 }
 
 Paddle.prototype.update = function() {
-    // input
-    if (BREAK_APP.inputs.rightPressed && this.x < this.xMax) {
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    // Keyboard Input Legend
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    // Key          Keycode     Action
+    // ===          =======     ======
+    // left         37          Move Paddle left
+    // right        39          Move Paddle right
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+    if (39 in BREAK_APP.inputs.keysDown && this.x < this.xMax) {
         this.x += this.dx;
     }
-    if (BREAK_APP.inputs.leftPressed && this.x > 0) {
+    if (37 in BREAK_APP.inputs.keysDown && this.x > 0) {
         this.x -= this.dx;
     }
 };
