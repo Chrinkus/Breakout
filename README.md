@@ -1,5 +1,9 @@
 #Breakout JS
 
-This repo stores my work on the MDN Tutorial to create a working Breakout game using pure JavaScript.
+There are three stages to this project:
 
-Work here will help to improve my work on PhysBalls.
+1. Complete the MDN Breakout tutorial using pure JavaScript
+2. Create a new file that achieves the same results as the tutorial using better patterns
+3. Continue to abstract functionality into a reusable 2D game engine
+
+Once these goals are met I will attempt to make a Space Invaders replica to see how verstile my engine is.
